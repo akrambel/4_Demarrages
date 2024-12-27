@@ -204,29 +204,3 @@ void loop() {
   Blynk.run();
   timer.run();
 }
-
-
-
-void grandeVitesse(int sens) {
-    if (sens == 1) { // Sens 1 activé par V9
-        digitalWrite(relais1, HIGH);
-        digitalWrite(relais3, HIGH);
-        delay(3000); // Attente de 3 secondes
-        digitalWrite(relais1, LOW);
-        digitalWrite(relais3, LOW);
-        digitalWrite(relais4, HIGH);
-        delay(1000); // Attente de 1 seconde
-        digitalWrite(relais5, HIGH);
-        digitalWrite(relais1, HIGH);
-    } else if (sens == 2) { // Sens 2 activé par V10
-        digitalWrite(relais2, HIGH);
-        digitalWrite(relais3, HIGH);
-        delay(3000); // Attente de 3 secondes
-        digitalWrite(relais2, LOW);
-        digitalWrite(relais3, LOW);
-        digitalWrite(relais4, HIGH);
-        delay(1000); // Attente de 1 seconde
-        digitalWrite(relais5, HIGH);
-        digitalWrite(relais2, HIGH);
-    }
-}
