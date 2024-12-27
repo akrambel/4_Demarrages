@@ -12,36 +12,35 @@ char ssid[] = "TP-LINK_41EEBC";
 char pass[] = "LINA@2024@";
 
 // États des relais et modes
-bool sens1Active = false;    // Sens 1 actif (KM1)
-bool sens2Active = false;    // Sens 2 actif (KM2)
-bool etoileActive = false;   // Phase étoile active (KM4)
-bool triangleActive = false; // Phase triangle active (KM3)
-bool modeStatorique = false; // Mode statorique actif
-bool modeRotorique = false;  // Mode rotorique actif
-bool pvActive = false;       // Petite vitesse active
-bool gvActive = false;       // Grande vitesse active
-bool etoileTriangleActive = false; // Étoile-triangle actif
-bool statoriqueActive = false;     // Statorique actif
-bool rotoriqueActive = false;      // Rotorique actif
-bool systemRunning = false;        // Système en fonctionnement ou non
+bool sens1Active = false;
+bool sens2Active = false;
+bool etoileActive = false;
+bool triangleActive = false;
+bool modeStatorique = false;
+bool modeRotorique = false;
+bool pvActive = false;
+bool gvActive = false;
+bool etoileTriangleActive = false;
+bool statoriqueActive = false;
+bool rotoriqueActive = false;
+bool systemRunning = false;
 
 // Pins des relais
-#define RELAIS_SENS1 D0  // KM1
-#define RELAIS_SENS2 D1  // KM2
-#define RELAIS_PHASE1 D2 // KM3 (triangle, GV ou phase 3)
-#define RELAIS_PHASE2 D3 // KM4 (étoile, rotorique ou phase 2)
-#define RELAIS_PHASE3 D4 // KM5 (GV - phase 3)
-#define RELAIS_ET D5     // KM6 (étoile-triangle)
-#define RELAIS_ST D6     // KM7 (statorique)
-#define RELAIS_RT D7     // KM8 (rotorique)
+#define RELAIS_SENS1 D0
+#define RELAIS_SENS2 D1
+#define RELAIS_PHASE1 D2
+#define RELAIS_PHASE2 D3
+#define RELAIS_PHASE3 D4
+#define RELAIS_ET D5
+#define RELAIS_ST D6
+#define RELAIS_RT D7
 
 SimpleTimer timer;
-int timerId = -1; // ID du temporisateur en cours
+int timerId = -1;
 
-// Fonction d'arrêt général
 void stopAll() {
   if (timerId != -1) {
-    timer.deleteTimer(timerId); // Arrête la temporisation en cours
+    timer.deleteTimer(timerId);
     timerId = -1;
   }
 
@@ -50,9 +49,9 @@ void stopAll() {
   digitalWrite(RELAIS_PHASE1, HIGH);
   digitalWrite(RELAIS_PHASE2, HIGH);
   digitalWrite(RELAIS_PHASE3, HIGH);
-  digitalWrite(RELAIS_ET, HIGH); // Désactiver relais 6 (étoile-triangle)
-  digitalWrite(RELAIS_ST, HIGH); // Désactiver relais 7 (statorique)
-  digitalWrite(RELAIS_RT, HIGH); // Désactiver relais 8 (rotorique)
+  digitalWrite(RELAIS_ET, HIGH);
+  digitalWrite(RELAIS_ST, HIGH);
+  digitalWrite(RELAIS_RT, HIGH);
 
   sens1Active = false;
   sens2Active = false;
@@ -66,7 +65,47 @@ void stopAll() {
   systemRunning = false;
 }
 
-// Petite vitesse (PV)
+
+void startGV(bool sens1) {
+  stopAll();
+
+  if (sens1) {
+    // Si le sens 1 est choisi, activer uniquement le relais 1
+    digitalWrite(RELAIS_SENS1, LOW); // Activation relais 1
+    digitalWrite(RELAIS_PHASE1, LOW); // Activation relais 3
+    sens1Active = true;
+  } else {
+    // Si le sens 2 est choisi, activer uniquement le relais 2
+    digitalWrite(RELAIS_SENS2, LOW); // Activation relais 2
+    digitalWrite(RELAIS_PHASE1, LOW); // Activation relais 3
+    sens2Active = true;
+  }
+
+  gvActive = true;
+  systemRunning = true;
+
+  // Temporisation pour désactiver relais 1/2 et 3, puis activer relais 4
+  timerId = timer.setTimeout(3000, []() {
+    // Désactivation de relais 1 et 2
+    digitalWrite(RELAIS_SENS1, HIGH);
+    digitalWrite(RELAIS_SENS2, HIGH);
+    digitalWrite(RELAIS_PHASE1, HIGH); // Désactivation relais 3
+    // Activation relais 4
+    digitalWrite(RELAIS_PHASE2, LOW);
+
+    // Temporisation pour activer relais 5 et 1/2
+    timer.setTimeout(1000, []() {
+      digitalWrite(RELAIS_PHASE3, LOW); // Activation relais 5
+      if (sens1Active) {
+        digitalWrite(RELAIS_SENS1, LOW); // Réactivation relais 1
+      } else {
+        digitalWrite(RELAIS_SENS2, LOW); // Réactivation relais 2
+      }
+    });
+  });
+}
+
+// Autres démarrages (inchangés)
 void startPV(bool sens1) {
   stopAll();
   if (sens1) {
@@ -82,33 +121,10 @@ void startPV(bool sens1) {
   systemRunning = true;
 }
 
-// Grande vitesse (GV)
-void startGV(bool sens1) {
-  stopAll();
-  if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
-    sens1Active = true;
-  } else {
-    digitalWrite(RELAIS_SENS2, LOW);
-    sens2Active = true;
-  }
-
-  digitalWrite(RELAIS_PHASE2, LOW); // Activation initiale de la grande vitesse (KM4)
-  gvActive = true;
-  systemRunning = true;
-
-  timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE2, HIGH); // Désactivation de KM4 après 3 secondes
-    digitalWrite(RELAIS_PHASE3, LOW); // Activation de KM5
-    timerId = -1; // Réinitialise l'ID du timer
-  });
-}
-
-// Démarrage étoile-triangle
 void startStarTriangle(bool sens1) {
   stopAll();
   digitalWrite(RELAIS_ET, LOW); // Activation de KM6 (étoile-triangle)
-  etoileTriangleActive = true; // Marquer le démarrage en étoile-triangle
+  etoileTriangleActive = true;
   if (sens1) {
     digitalWrite(RELAIS_SENS1, LOW);
     sens1Active = true;
@@ -131,11 +147,10 @@ void startStarTriangle(bool sens1) {
   });
 }
 
-// Démarrage statorique
 void startStatorique(bool sens1) {
   stopAll();
   digitalWrite(RELAIS_ST, LOW); // Activation de KM7 (statorique)
-  statoriqueActive = true; // Marquer le démarrage statorique
+  statoriqueActive = true;
   if (sens1) {
     digitalWrite(RELAIS_SENS1, LOW);
     sens1Active = true;
@@ -143,7 +158,6 @@ void startStatorique(bool sens1) {
     digitalWrite(RELAIS_SENS2, LOW);
     sens2Active = true;
   }
-
   timerId = timer.setTimeout(3000, []() {
     digitalWrite(RELAIS_PHASE1, LOW); // Activation de KM3
     modeStatorique = true;
@@ -152,11 +166,10 @@ void startStatorique(bool sens1) {
   });
 }
 
-// Démarrage rotorique
 void startRotorique(bool sens1) {
   stopAll();
   digitalWrite(RELAIS_RT, LOW); // Activation de KM8 (rotorique)
-  rotoriqueActive = true; // Marquer le démarrage rotorique
+  rotoriqueActive = true;
   if (sens1) {
     digitalWrite(RELAIS_SENS1, LOW);
     sens1Active = true;
