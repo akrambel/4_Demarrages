@@ -2,6 +2,7 @@
 #define BLYNK_TEMPLATE_NAME "TP"
 #define BLYNK_AUTH_TOKEN "b_piDT_QxCelhx0XatJZK-FD259DEW9t"
 
+
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
