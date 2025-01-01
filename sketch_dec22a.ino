@@ -11,7 +11,6 @@ char auth[] = BLYNK_AUTH_TOKEN;
 char ssid[] = "TP-LINK_41EEBC";
 char pass[] = "LINA@2024@";
 
-// États des relais et modes
 bool sens1Active = false;
 bool sens2Active = false;
 bool etoileActive = false;
@@ -25,7 +24,6 @@ bool statoriqueActive = false;
 bool rotoriqueActive = false;
 bool systemRunning = false;
 
-// Pins des relais
 #define RELAIS_SENS1 D0
 #define RELAIS_SENS2 D1
 #define RELAIS_PHASE1 D2
@@ -33,7 +31,7 @@ bool systemRunning = false;
 #define RELAIS_PHASE3 D4
 #define RELAIS_ET D5
 #define RELAIS_ST D6
-#define RELAIS_RT D7 // Bouton poussoir sur D8
+#define RELAIS_RT D7
 
 SimpleTimer timer;
 int timerId = -1;
@@ -65,18 +63,16 @@ void stopAll() {
   systemRunning = false;
 }
 
-// Autres fonctions start... (inchangées)
-
 void startGV(bool sens1) {
   stopAll();
 
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW); // Activation relais 1
-    digitalWrite(RELAIS_PHASE1, LOW); // Activation relais 3
+    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_PHASE1, LOW);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW); // Activation relais 2
-    digitalWrite(RELAIS_PHASE1, LOW); // Activation relais 3
+    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_PHASE1, LOW);
     sens2Active = true;
   }
 
@@ -86,11 +82,11 @@ void startGV(bool sens1) {
   timerId = timer.setTimeout(3000, []() {
     digitalWrite(RELAIS_SENS1, HIGH);
     digitalWrite(RELAIS_SENS2, HIGH);
-    digitalWrite(RELAIS_PHASE1, HIGH); // Désactivation relais 3
+    digitalWrite(RELAIS_PHASE1, HIGH);
     digitalWrite(RELAIS_PHASE2, LOW);
 
     timer.setTimeout(500, []() {
-      digitalWrite(RELAIS_PHASE3, LOW); // Activation relais 5
+      digitalWrite(RELAIS_PHASE3, LOW);
       if (sens1Active) {
         digitalWrite(RELAIS_SENS1, LOW);
       } else {
@@ -100,7 +96,6 @@ void startGV(bool sens1) {
   });
 }
 
-// Autres démarrages (inchangés)
 void startPV(bool sens1) {
   stopAll();
   if (sens1) {
@@ -111,14 +106,14 @@ void startPV(bool sens1) {
     sens2Active = true;
   }
 
-  digitalWrite(RELAIS_PHASE1, LOW); // Activation de la petite vitesse (KM3)
+  digitalWrite(RELAIS_PHASE1, LOW);
   pvActive = true;
   systemRunning = true;
 }
 
 void startStarTriangle(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_ET, LOW); // Activation de KM6 (étoile-triangle)
+  digitalWrite(RELAIS_ET, LOW);
   etoileTriangleActive = true;
 
   if (sens1) {
@@ -129,16 +124,16 @@ void startStarTriangle(bool sens1) {
     sens2Active = true;
   }
 
-  digitalWrite(RELAIS_PHASE2, LOW); // Phase étoile active (KM4)
+  digitalWrite(RELAIS_PHASE2, LOW);
   etoileActive = true;
   systemRunning = true;
 
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE2, HIGH); // Désactivation de l'étoile (KM4)
+    digitalWrite(RELAIS_PHASE2, HIGH);
     etoileActive = false;
 
     timer.setTimeout(100, []() {
-      digitalWrite(RELAIS_PHASE1, LOW); // Activation du triangle (KM3)
+      digitalWrite(RELAIS_PHASE1, LOW);
       triangleActive = true;
       timerId = -1;
     });
@@ -147,7 +142,7 @@ void startStarTriangle(bool sens1) {
 
 void startStatorique(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_ST, LOW); // Activation de KM7 (statorique)
+  digitalWrite(RELAIS_ST, LOW);
   statoriqueActive = true;
   if (sens1) {
     digitalWrite(RELAIS_SENS1, LOW);
@@ -157,15 +152,16 @@ void startStatorique(bool sens1) {
     sens2Active = true;
   }
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE1, LOW); // Activation de KM3
+    digitalWrite(RELAIS_PHASE1, LOW);
     modeStatorique = true;
     systemRunning = true;
     timerId = -1;
   });
 }
+
 void startRotorique(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_RT, LOW); // Activation de KM8 (rotorique)
+  digitalWrite(RELAIS_RT, LOW);
   rotoriqueActive = true;
   if (sens1) {
     digitalWrite(RELAIS_SENS1, LOW);
@@ -176,14 +172,12 @@ void startRotorique(bool sens1) {
   }
 
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE2, LOW); // Activation de KM4
+    digitalWrite(RELAIS_PHASE2, LOW);
     modeRotorique = true;
     systemRunning = true;
     timerId = -1;
   });
 }
-
-// Boutons Blynk
 BLYNK_WRITE(V0) { if (param.asInt() && !systemRunning) startStarTriangle(true); }
 BLYNK_WRITE(V1) { if (param.asInt() && !systemRunning) startStarTriangle(false); }
 BLYNK_WRITE(V3) { if (param.asInt() && !systemRunning) startStatorique(true); }
@@ -205,7 +199,7 @@ void setup() {
   pinMode(RELAIS_PHASE3, OUTPUT);
   pinMode(RELAIS_ET, OUTPUT);
   pinMode(RELAIS_ST, OUTPUT);
-  pinMode(RELAIS_RT, INPUT_PULLUP); // Configurer D8 comme entrée avec résistance de pull-up
+  pinMode(RELAIS_RT, INPUT_PULLUP);
   stopAll();
   Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
 }
@@ -214,9 +208,8 @@ void loop() {
   Blynk.run();
   timer.run();
 
-  // Vérifier l'état du bouton poussoir sur D8 (RELAIS_RT)
-  if (digitalRead(RELAIS_RT) == LOW) { // Si le bouton est appuyé (état bas)
-    stopAll(); // Arrêter tous les relais
-    delay(200); // Délais pour éviter rebonds du bouton
+  if (digitalRead(RELAIS_RT) == LOW) {
+    stopAll();
+    delay(200);
   }
 }
