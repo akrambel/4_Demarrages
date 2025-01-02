@@ -2,7 +2,6 @@
 #define BLYNK_TEMPLATE_NAME "TP"
 #define BLYNK_AUTH_TOKEN "b_piDT_QxCelhx0XatJZK-FD259DEW9t"
 
-
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
@@ -33,6 +32,7 @@ bool systemRunning = false;
 #define RELAIS_ET D5
 #define RELAIS_ST D6
 #define RELAIS_RT D7
+#define LED_WIFI D8
 
 SimpleTimer timer;
 int timerId = -1;
@@ -179,6 +179,7 @@ void startRotorique(bool sens1) {
     timerId = -1;
   });
 }
+
 BLYNK_WRITE(V0) { if (param.asInt() && !systemRunning) startStarTriangle(true); }
 BLYNK_WRITE(V1) { if (param.asInt() && !systemRunning) startStarTriangle(false); }
 BLYNK_WRITE(V3) { if (param.asInt() && !systemRunning) startStatorique(true); }
@@ -201,6 +202,9 @@ void setup() {
   pinMode(RELAIS_ET, OUTPUT);
   pinMode(RELAIS_ST, OUTPUT);
   pinMode(RELAIS_RT, INPUT_PULLUP);
+  pinMode(LED_WIFI, OUTPUT);
+  digitalWrite(LED_WIFI, LOW);
+
   stopAll();
   Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
 }
@@ -208,6 +212,24 @@ void setup() {
 void loop() {
   Blynk.run();
   timer.run();
+
+  if (WiFi.status() == WL_CONNECTED) {
+    digitalWrite(LED_WIFI, HIGH);
+  } else {
+    digitalWrite(LED_WIFI, LOW);
+  }
+
+  if (sens1Active) {
+    digitalWrite(RELAIS_ET, LOW);
+  } else {
+    digitalWrite(RELAIS_ET, HIGH);
+  }
+
+  if (sens2Active) {
+    digitalWrite(RELAIS_ST, LOW);
+  } else {
+    digitalWrite(RELAIS_ST, HIGH);
+  }
 
   if (digitalRead(RELAIS_RT) == LOW) {
     stopAll();
