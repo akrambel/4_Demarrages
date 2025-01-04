@@ -192,6 +192,7 @@ BLYNK_WRITE(V9) { if (param.asInt() && !systemRunning) startGV(true); }
 BLYNK_WRITE(V10) { if (param.asInt() && !systemRunning) startGV(false); }
 BLYNK_WRITE(V2) { if (param.asInt()) stopAll(); }
 
+
 void setup() {
   Serial.begin(115200);
   pinMode(RELAIS_SENS1, OUTPUT);
