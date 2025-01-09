@@ -1,3 +1,6 @@
+/*. ISIM_ESA201_Akram_Bellouk.  */
+
+
 #define BLYNK_TEMPLATE_ID "TMPL2Mb2k2S1H"
 #define BLYNK_TEMPLATE_NAME "TP"
 #define BLYNK_AUTH_TOKEN "b_piDT_QxCelhx0XatJZK-FD259DEW9t"
@@ -84,9 +87,10 @@ void startGV(bool sens1) {
     digitalWrite(RELAIS_SENS1, HIGH);
     digitalWrite(RELAIS_SENS2, HIGH);
     digitalWrite(RELAIS_PHASE1, HIGH);
+    delay(100);
     digitalWrite(RELAIS_PHASE2, LOW);
 
-    timer.setTimeout(500, []() {
+    timer.setTimeout(10, []() {
       digitalWrite(RELAIS_PHASE3, LOW);
       if (sens1Active) {
         digitalWrite(RELAIS_SENS1, LOW);
