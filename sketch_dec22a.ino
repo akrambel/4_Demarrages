@@ -1,6 +1,6 @@
 /*. ISIM_ESA201_Akram_Bellouk.  */
 
-
+//LAST
 #define BLYNK_TEMPLATE_ID "TMPL2Mb2k2S1H"
 #define BLYNK_TEMPLATE_NAME "TP"
 #define BLYNK_AUTH_TOKEN "b_piDT_QxCelhx0XatJZK-FD259DEW9t"
@@ -46,13 +46,13 @@ void stopAll() {
     timerId = -1;
   }
 
-  digitalWrite(RELAIS_SENS1, HIGH);
-  digitalWrite(RELAIS_SENS2, HIGH);
-  digitalWrite(RELAIS_PHASE1, HIGH);
-  digitalWrite(RELAIS_PHASE2, HIGH);
-  digitalWrite(RELAIS_PHASE3, HIGH);
-  digitalWrite(RELAIS_ET, HIGH);
-  digitalWrite(RELAIS_ST, HIGH);
+  digitalWrite(RELAIS_SENS1, LOW);
+  digitalWrite(RELAIS_SENS2, LOW);
+  digitalWrite(RELAIS_PHASE1, LOW);
+  digitalWrite(RELAIS_PHASE2, LOW);
+  digitalWrite(RELAIS_PHASE3, LOW);
+  digitalWrite(RELAIS_ET, LOW);
+  digitalWrite(RELAIS_ST, LOW);
   digitalWrite(RELAIS_RT, HIGH);
 
   sens1Active = false;
@@ -71,12 +71,12 @@ void startGV(bool sens1) {
   stopAll();
 
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
-    digitalWrite(RELAIS_PHASE1, LOW);
+    digitalWrite(RELAIS_SENS1, HIGH);
+    digitalWrite(RELAIS_PHASE1, HIGH);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW);
-    digitalWrite(RELAIS_PHASE1, LOW);
+    digitalWrite(RELAIS_SENS2, HIGH);
+    digitalWrite(RELAIS_PHASE1, HIGH);
     sens2Active = true;
   }
 
@@ -84,18 +84,18 @@ void startGV(bool sens1) {
   systemRunning = true;
 
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_SENS1, HIGH);
-    digitalWrite(RELAIS_SENS2, HIGH);
-    digitalWrite(RELAIS_PHASE1, HIGH);
+    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_PHASE1, LOW);
     delay(100);
-    digitalWrite(RELAIS_PHASE2, LOW);
+    digitalWrite(RELAIS_PHASE2, HIGH);
 
     timer.setTimeout(10, []() {
-      digitalWrite(RELAIS_PHASE3, LOW);
+      digitalWrite(RELAIS_PHASE3, HIGH);
       if (sens1Active) {
-        digitalWrite(RELAIS_SENS1, LOW);
+        digitalWrite(RELAIS_SENS1, HIGH);
       } else {
-        digitalWrite(RELAIS_SENS2, LOW);
+        digitalWrite(RELAIS_SENS2, HIGH);
       }
     });
   });
@@ -104,41 +104,41 @@ void startGV(bool sens1) {
 void startPV(bool sens1) {
   stopAll();
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_SENS1, HIGH);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_SENS2, HIGH);
     sens2Active = true;
   }
 
-  digitalWrite(RELAIS_PHASE1, LOW);
+  digitalWrite(RELAIS_PHASE1, HIGH);
   pvActive = true;
   systemRunning = true;
 }
 
 void startStarTriangle(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_ET, LOW);
+  digitalWrite(RELAIS_ET, HIGH);
   etoileTriangleActive = true;
 
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_SENS1, HIGH);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_SENS2, HIGH);
     sens2Active = true;
   }
 
-  digitalWrite(RELAIS_PHASE2, LOW);
+  digitalWrite(RELAIS_PHASE2, HIGH);
   etoileActive = true;
   systemRunning = true;
 
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE2, HIGH);
+    digitalWrite(RELAIS_PHASE2, LOW);
     etoileActive = false;
 
     timer.setTimeout(100, []() {
-      digitalWrite(RELAIS_PHASE1, LOW);
+      digitalWrite(RELAIS_PHASE1, HIGH);
       triangleActive = true;
       timerId = -1;
     });
@@ -147,17 +147,17 @@ void startStarTriangle(bool sens1) {
 
 void startStatorique(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_ST, LOW);
+  digitalWrite(RELAIS_ST, HIGH);
   statoriqueActive = true;
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_SENS1, HIGH);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_SENS2, HIGH);
     sens2Active = true;
   }
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE1, LOW);
+    digitalWrite(RELAIS_PHASE1, HIGH);
     modeStatorique = true;
     systemRunning = true;
     timerId = -1;
@@ -166,18 +166,18 @@ void startStatorique(bool sens1) {
 
 void startRotorique(bool sens1) {
   stopAll();
-  digitalWrite(RELAIS_RT, LOW);
+  digitalWrite(RELAIS_RT, HIGH);
   rotoriqueActive = true;
   if (sens1) {
-    digitalWrite(RELAIS_SENS1, LOW);
+    digitalWrite(RELAIS_SENS1, HIGH);
     sens1Active = true;
   } else {
-    digitalWrite(RELAIS_SENS2, LOW);
+    digitalWrite(RELAIS_SENS2, HIGH);
     sens2Active = true;
   }
 
   timerId = timer.setTimeout(3000, []() {
-    digitalWrite(RELAIS_PHASE2, LOW);
+    digitalWrite(RELAIS_PHASE2, HIGH);
     modeRotorique = true;
     systemRunning = true;
     timerId = -1;
@@ -206,7 +206,7 @@ void setup() {
   pinMode(RELAIS_PHASE3, OUTPUT);
   pinMode(RELAIS_ET, OUTPUT);
   pinMode(RELAIS_ST, OUTPUT);
-  pinMode(RELAIS_RT, INPUT_PULLUP);
+  pinMode(RELAIS_RT, INPUT_PULLUP);//_PULLUP
   pinMode(LED_WIFI, OUTPUT);
   digitalWrite(LED_WIFI, LOW);
 
@@ -225,19 +225,19 @@ void loop() {
   }
 
   if (sens1Active) {
-    digitalWrite(RELAIS_ET, LOW);
-  } else {
     digitalWrite(RELAIS_ET, HIGH);
+  } else {
+    digitalWrite(RELAIS_ET, LOW);
   }
 
   if (sens2Active) {
-    digitalWrite(RELAIS_ST, LOW);
-  } else {
     digitalWrite(RELAIS_ST, HIGH);
+  } else {
+    digitalWrite(RELAIS_ST, LOW);
   }
 
   if (digitalRead(RELAIS_RT) == LOW) {
     stopAll();
-    delay(200);
+    delay(400);
   }
 }
